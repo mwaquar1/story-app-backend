@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from services.openai_client import get_completion
+from services.openai_client import get_completion, generate_image_base64
 
 # --- FastAPI app ---
 app = FastAPI()
@@ -19,7 +19,8 @@ class StoryRequest(BaseModel):
     genre: str
     characters: int
     paragraphs: int
-    extraPrompt: str | None = None   # optional field
+    extraPrompt: str | None = None
+    generateImages: bool = False
 
 @app.post("/generate")
 def generate_story(req: StoryRequest):
@@ -32,6 +33,16 @@ def generate_story(req: StoryRequest):
 
     try:
         story = get_completion(prompt)
-        return {"story": story}
+        print("Generated Story")
+        paragraphs = story.split("\n\n")
+        images = []
+        print("Image Generation: ", req.generateImages)
+        if req.generateImages:
+            for p in paragraphs:
+                img_prompt = f"Illustration for: {p}"
+                img_b64 = generate_image_base64(img_prompt)
+                images.append(img_b64)
+
+        return {"story": story, "images": images}
     except Exception as e:
         return {"story": f"Error: {str(e)}"}

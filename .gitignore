@@ -1,0 +1,33 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+
+# IDEs
+.vscode/
+.idea/
+
+# Test coverage
+htmlcov/
+.coverage
+
+# Migrations
+db.sqlite3
+
+# Others
+*.swp
+*.bak
+*.tmp
+

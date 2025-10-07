@@ -84,15 +84,15 @@ def get_prompt_for_story_generation(req: StoryRequest):
 
 
 def get_prompt_for_image_generation(prompt):
-    system_message = '''Your job is to summarize the user prompt into few sentences. \
+    system_message = '''Your job is to summarize the user prompt into few short sentences. \
     You will be provided with paragraphs which is part of a story or \
     it could be an entire story. \
-    You have to summarize the paragraphs into few sentences \
+    You have to summarize the paragraphs into few short sentences \
     that could be passed as prompt for an image generation model. \
     If there are more than one paragraphs, where paragraphs are separated by two newline characters, \
-    you will emphasise only last paragraph while summarizing. The other paragraphs \
-    are meant for context only. \
-    Summary should be short and specific enough to be used as prompt for an image generation model. '''
+    you will emphasise only on last paragraph while summarizing. \
+    The other paragraphs are meant for context only. \
+    Summary should be short and specific enough to be used as prompt for an image generation model.'''
 
     prompt_for_summary = [{"role": "system", "content": system_message}, {"role": "user", "content": prompt}]
 

@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from services.openai_client import get_completion, generate_image_base64
+import concurrent.futures
 
 # --- FastAPI app ---
 app = FastAPI()
@@ -26,20 +27,27 @@ class StoryRequest(BaseModel):
 
 @app.post("/generate")
 def generate_story(req: StoryRequest):
-    # Build the prompt
-    prompt = get_prompt(req)
+    # Build the story_prompt
+    story_prompt = get_prompt(req)
     try:
-        story = get_completion(prompt)
+        story = get_completion(story_prompt)
         print("Generated Story")
         paragraphs = story.split("\n\n")
         images = []
         print("Image Generation: ", req.generateImages)
         if req.generateImages:
-            for p in paragraphs:
-                img_prompt = f"Illustration for: {p}"
-                img_b64 = generate_image_base64(img_prompt)
-                images.append(img_b64)
+            img_prompts = [f"Illustration for: {p}" for p in paragraphs]
 
+            def generate_image(image_prompt):
+                try:
+                    return generate_image_base64(image_prompt)
+                except Exception as e:
+                    print(f"Image generation error for story_prompt '{image_prompt}': {str(e)}")
+                    return None
+
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                images = list(executor.map(generate_image, img_prompts))
+            images = [img for img in images if img is not None]
         return {"story": story, "images": images}
     except Exception as e:
         return {"story": f"Error: {str(e)}"}

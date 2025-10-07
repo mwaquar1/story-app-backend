@@ -48,19 +48,14 @@ def generate_story(req: StoryRequest):
             paragraphs = story.split("\n\n")
             cumulative_paragraphs = ["\n\n".join(paragraphs[:i + 1]) for i in range(len(paragraphs))]
 
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                img_prompts = list(executor.map(get_prompt_for_image_generation, cumulative_paragraphs))
-            img_prompts = [f"Illustration for: {prompt}" for prompt in img_prompts]
-
-            def generate_image(image_prompt):
-                try:
-                    return generate_image_base64(image_prompt)
-                except Exception as ex:
-                    print(f"Image generation error for story_prompt '{image_prompt}': {str(ex)}")
-                    return None
+            def generate_image_chain(paragraph):
+                prompt = get_prompt_for_image_generation(paragraph)
+                image_prompt = f"Illustration for: {prompt}"
+                print("\nGenerating image...")
+                return generate_image_base64(image_prompt)
 
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                images = list(executor.map(generate_image, img_prompts))
+                images = list(executor.map(generate_image_chain, cumulative_paragraphs))
             images = [img for img in images if img is not None]
         return {"story": story, "images": images}
     except Exception as e:
@@ -102,5 +97,4 @@ def get_prompt_for_image_generation(prompt):
     prompt_for_summary = [{"role": "system", "content": system_message}, {"role": "user", "content": prompt}]
 
     result = get_completion(prompt=prompt_for_summary, model="google/gemma-3-27b-it")
-    print("\nGenerated Image Prompt:", result)
     return result

@@ -10,6 +10,7 @@ openai = OpenAI(
 
 
 def get_completion(prompt, model="openai/gpt-oss-20b"):
+    print("Generating using model:", model)
     response = openai.chat.completions.create(
         model=model,
         messages=prompt,

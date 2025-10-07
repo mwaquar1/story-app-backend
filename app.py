@@ -16,6 +16,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+model_dict = {"gpt": "openai/gpt-oss-20b",
+              "llama": "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+              "gemma": "google/gemma-3-27b-it"}
+
 
 class StoryRequest(BaseModel):
     genre: str
@@ -23,6 +27,7 @@ class StoryRequest(BaseModel):
     paragraphs: int
     extraPrompt: str | None = None
     generateImages: bool = False
+    model: str | None = None
 
 
 @app.post("/generate")
@@ -30,7 +35,11 @@ def generate_story(req: StoryRequest):
     # Build the story_prompt
     story_prompt = get_prompt(req)
     try:
-        story = get_completion(story_prompt)
+        model_name = model_dict.get(req.model)
+        if model_name:
+            story = get_completion(prompt=story_prompt, model=model_name)
+        else:
+            story = get_completion(prompt=story_prompt)
         print("Generated Story")
         paragraphs = story.split("\n\n")
         images = []
